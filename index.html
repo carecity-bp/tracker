@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bevétel / Kiadás rögzítés</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+    }
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    button.method {
+      width: 30%;
+      padding: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      background: #ddd;
+    }
+    button.active {
+      background: #4CAF50;
+      color: white;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    #send {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Bevétel / Kiadás</h2>
+
+  <div class="buttons">
+    <button class="method" onclick="setMethod('KP', this)">KP</button>
+    <button class="method" onclick="setMethod('POS', this)">POS</button>
+    <button class="method" onclick="setMethod('UT', this)">UT</button>
+  </div>
+
+  <input type="number" id="income" placeholder="Bevétel összege" />
+  <input type="number" id="expense" placeholder="Kiadás összege" />
+
+  <button id="send" onclick="sendData()">Mentés</button>
+
+  <div id="status"></div>
+
+  <script>
+    let selectedMethod = "";
+
+    function setMethod(method, btn) {
+      selectedMethod = method;
+      document.querySelectorAll('.method').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function sendData() {
+      const income = document.getElementById("income").value || 0;
+      const expense = document.getElementById("expense").value || 0;
+
+      if (!selectedMethod) {
+        alert("Válassz fizetési módot (KP / POS / UT)!");
+        return;
+      }
+
+      fetch("https://script.google.com/macros/s/AKfycbz12bFgHXQrfGw6VEy53DzB9mKq6NhpyJP_CioMFZZ-IVVCFDbUHvHNrgDoqBaQ5GyU8A/exec", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          method: selectedMethod,
+          income: income,
+          expense: expense
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "ok") {
+            document.getElementById("status").innerText = "Sikeresen mentve ✔";
+            document.getElementById("income").value = "";
+            document.getElementById("expense").value = "";
+          } else {
+            document.getElementById("status").innerText = "Script hiba: " + data.message;
+          }
+        })
+        .catch(error => {
+          document.getElementById("status").innerText = "Hiba történt ❌";
+          console.error(error);
+        });
+    }
+  </script>
+
+</body>
+</html>
